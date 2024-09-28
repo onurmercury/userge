@@ -25,7 +25,6 @@ DISABLED_CHATS: Set[int] = set()
 class Dynamic:
     DISABLED_ALL = False
 
-    RUN_DYNO_SAVER = False
     STATUS = None
 
 
@@ -37,23 +36,14 @@ async def set_env(key: str, value: str) -> None:
     environ[key] = value
     await api.set_env(key, value)
 
-    if config.HEROKU_APP:
-        config.HEROKU_APP.config()[key] = value
-
 
 async def del_env(key: str) -> Optional[str]:
     if key in environ:
         val = environ.pop(key)
         await api.unset_env(key)
 
-        if config.HEROKU_APP:
-            del config.HEROKU_APP.config()[key]
-
         return val
 
 
 def shutdown() -> None:
-    if config.HEROKU_APP:
-        config.HEROKU_APP.process_formation()['worker'].scale(0)
-
     kill(getpid(), SIGTERM)
